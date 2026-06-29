@@ -17,6 +17,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Python 3.11 설치 (node-gyp 필요, 3.12는 distutils 제거됨)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: MSVC 개발 환경 설정
         uses: ilammy/msvc-dev-cmd@v1
 
