@@ -1,0 +1,36 @@
+name: Windows EXE 빌드
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 의존성 설치 (네이티브 모듈 재빌드 포함)
+        run: npm ci
+
+      - name: Electron 앱 빌드
+        run: npm run build
+
+      - name: Windows EXE 패키징
+        run: npx electron-builder --win --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 빌드 결과물 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcea-member-manager-windows
+          path: dist/*.exe
+          retention-days: 30
