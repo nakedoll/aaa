@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한국콘텐츠기업협회 회원관리 시스템</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --sidebar-bg:     #0D1B35;
+      --sidebar-hover:  #152847;
+      --sidebar-active: #1A3561;
+      --accent:         #3B82F6;
+      --accent-dark:    #2563EB;
+      --accent-light:   #EFF6FF;
+      --bg:             #F1F5F9;
+      --card:           #FFFFFF;
+      --border:         #E2E8F0;
+      --text-1:         #0F172A;
+      --text-2:         #475569;
+      --text-3:         #94A3B8;
+      --green:          #10B981;
+      --green-bg:       #D1FAE5;
+      --green-text:     #065F46;
+      --amber:          #F59E0B;
+      --amber-bg:       #FEF3C7;
+      --amber-text:     #92400E;
+      --red:            #EF4444;
+      --red-bg:         #FEE2E2;
+      --red-text:       #991B1B;
+      --radius:         8px;
+      --shadow:         0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9px; }
+
+    /* ────────────────────────────────
+       SIDEBAR
+    ──────────────────────────────── */
+    .sidebar {
+      width: 228px;
+      min-width: 228px;
+      background: var(--sidebar-bg);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      padding: 22px 18px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .org-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 9px;
+    }
+
+    .org-name {
+      color: #F1F5F9;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .nav-section { padding: 6px 0; }
+
+    .nav-label {
+      color: #475569;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 10px 18px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 18px;
+      color: #7B95B8;
+      font-size: 13px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background 0.13s, color 0.13s;
+      user-select: none;
+    }
+
+    .nav-item:hover { background: var(--sidebar-hover); color: #CBD5E1; }
+
+    .nav-item.active {
+      background: var(--sidebar-active);
+      color: #FFFFFF;
+      border-left-color: var(--accent);
+    }
+
+    .nav-icon {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      opacity: 0.65;
+    }
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px 18px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 11px;
+      color: #3D5471;
+    }
+
+    /* ────────────────────────────────
+       MAIN
+    ──────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top bar */
+    .topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-section {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .topbar-sep {
+      font-size: 12px;
+      color: var(--border);
+    }
+
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-1);
+    }
+
+    .topbar-date {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    /* Content scroll area */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 26px 28px 40px;
+    }
+
+    /* ────────────────────────────────
+       PAGES
+    ──────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Page header */
+    .page-hd {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: -0.02em;
+      margin-bottom: 3px;
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    /* ────────────────────────────────
+       CARD
+    ──────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card-body { padding: 20px; }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-1);
+      padding-bottom: 13px;
+      margin-bottom: 13px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ────────────────────────────────
+       STAT CARDS
+    ──────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      border-top: 3px solid var(--accent);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.12s;
+    }
+
+    .stat-card:hover {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.09);
+      transform: translateY(-1px);
+    }
+
+    .stat-card.green  { border-top-color: var(--green); }
+    .stat-card.amber  { border-top-color: var(--amber); }
+    .stat-card.slate  { border-top-color: #CBD5E1; }
+
+    .stat-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-3);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--text-1);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 5px;
+    }
+
+    .stat-value.sm { font-size: 22px; }
+
+    .stat-sub {
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+
+    /* ────────────────────────────────
+       TABLE
+    ──────────────────────────────── */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .table-toolbar {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: #FAFBFC;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 10px 0 32px;
+      font-size: 13px;
+      color: var(--text-1);
+      background: white;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.13s, box-shadow 0.13s;
+    }
+
+    .search-input::placeholder { color: var(--text-3); }
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+
+    .filter-select {
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 13px;
+      color: var(--text-1);
+      background: white;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.13s;
+    }
+
+    .filter-select:focus { border-color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      text-align: left;
+      padding: 9px 16px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-3);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #F8FAFC; }
+
+    td {
+      padding: 12px 16px;
+      font-size: 13.5px;
+      color: var(--text-1);
+      vertical-align: middle;
+    }
+
+    td.muted { color: var(--text-2); font-size: 13px; }
+
+    .table-company { font-weight: 600; }
+
+    /* ────────────────────────────────
+       BADGE
+    ──────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .badge-active   { background: var(--green-bg);  color: var(--green-text); }
+    .badge-dormant  { background: var(--amber-bg);  color: var(--amber-text); }
+    .badge-withdrawn{ background: #F1F5F9;           color: #64748B; }
+    .badge-paid     { background: var(--green-bg);  color: var(--green-text); }
+    .badge-unpaid   { background: var(--red-bg);    color: var(--red-text); }
+
+    /* ────────────────────────────────
+       PAGINATION
+    ──────────────────────────────── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-3);
+      background: #FAFBFC;
+    }
+
+    .page-btns { display: flex; gap: 3px; }
+
+    .page-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      font-family: inherit;
+      transition: all 0.1s;
+    }
+
+    .page-btn:hover { background: var(--bg); }
+
+    .page-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      font-weight: 700;
+    }
+
+    /* ────────────────────────────────
+       BUTTONS
+    ──────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.13s;
+      white-space: nowrap;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-dark); }
+
+    .btn-ghost {
+      background: white;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg); }
+
+    .btn-danger {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border: 1px solid #FECACA;
+    }
+    .btn-danger:hover { background: #FEE2E2; }
+
+    .btn-sm { height: 28px; padding: 0 11px; font-size: 12px; }
+
+    /* ────────────────────────────────
+       FORMS
+    ──────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.span2 { grid-column: 1 / -1; }
+
+    label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+
+    .req::after { content: ' *'; color: var(--red); }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    input[type="number"],
+    select.form-select,
+    textarea {
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 12px;
+      font-size: 13.5px;
+      color: var(--text-1);
+      font-family: inherit;
+      outline: none;
+      background: white;
+      transition: border-color 0.13s, box-shadow 0.13s;
+    }
+
+    textarea { height: 78px; padding: 8px 12px; resize: vertical; }
+
+    input:focus, select.form-select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    .hint { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+    /* ────────────────────────────────
+       DETAIL
+    ──────────────────────────────── */
+    .detail-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .info-list { display: flex; flex-direction: column; }
+
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-key {
+      width: 110px;
+      flex-shrink: 0;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-3);
+      padding-top: 1px;
+    }
+
+    .info-val {
+      flex: 1;
+      font-size: 13.5px;
+      color: var(--text-1);
+    }
+
+    /* Dues history */
+    .dues-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dues-row:last-child { border-bottom: none; }
+
+    .dues-year {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    .dues-meta {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    /* ────────────────────────────────
+       DASHBOARD TABLES
+    ──────────────────────────────── */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .dash-table tbody tr td { padding: 10px 14px; font-size: 13px; }
+    .dash-table thead th { padding: 8px 14px; }
+
+    /* ────────────────────────────────
+       SETTINGS
+    ──────────────────────────────── */
+    .notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 6px;
+      padding: 11px 14px;
+      font-size: 12.5px;
+      color: #1D4ED8;
+      margin-bottom: 18px;
+    }
+
+    .dues-setting-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dues-setting-row:last-child { border-bottom: none; }
+
+    .dues-setting-year {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-1);
+      width: 72px;
+    }
+
+    .dues-setting-row input {
+      width: 148px;
+    }
+
+    .backup-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .backup-item:last-child { border-bottom: none; }
+
+    .backup-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-1);
+      font-family: 'SF Mono', 'Consolas', monospace;
+    }
+
+    .backup-meta {
+      font-size: 11.5px;
+      color: var(--text-3);
+      margin-top: 3px;
+    }
+
+    /* ────────────────────────────────
+       DIVIDER / UTILS
+    ──────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 18px 0;
+    }
+
+    .flex-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ml-auto { margin-left: auto; }
+
+    /* ────────────────────────────────
+       CHARTS
+    ──────────────────────────────── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 20px 14px;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    .chart-meta {
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+
+    .chart-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .chart-tab {
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-3);
+      border-radius: 5px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      transition: all 0.13s;
+    }
+
+    .chart-tab.active {
+      background: white;
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .chart-canvas-wrap {
+      position: relative;
+      height: 200px;
+    }
+
+    /* stat card entrance animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-card { animation: fadeUp 0.4s ease both; }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.12s; }
+    .stat-card:nth-child(3) { animation-delay: 0.19s; }
+    .stat-card:nth-child(4) { animation-delay: 0.26s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .chart-card { animation: fadeIn 0.5s ease 0.3s both; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     SIDEBAR
+════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="org-kicker">
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="white"><circle cx="5" cy="5" r="5"/></svg>
+      KCEA
+    </div>
+    <div class="org-name">한국콘텐츠기업협회<br>회원관리 시스템</div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">메인</div>
+    <div class="nav-item active" onclick="nav('dashboard', this, '메인')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      대시보드
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">회원 관리</div>
+    <div class="nav-item" onclick="nav('member-list', this, '회원 관리')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      회원 목록
+    </div>
+    <div class="nav-item" onclick="nav('member-add', this, '회원 관리')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
+      회원 추가
+    </div>
+    <div class="nav-item" onclick="nav('member-detail', this, '회원 관리')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      회원 상세
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">설정</div>
+    <div class="nav-item" onclick="nav('settings-dues', this, '설정')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      기준 회비 설정
+    </div>
+    <div class="nav-item" onclick="nav('settings-backup', this, '설정')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      백업 / 복원
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">v1.0.0 · 2026</div>
+</aside>
+
+<!-- ════════════════════════════════
+     MAIN
+════════════════════════════════ -->
+<main class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-section" id="tb-section">메인</span>
+      <span class="topbar-sep">›</span>
+      <span class="topbar-title" id="tb-title">대시보드</span>
+    </div>
+    <span class="topbar-date">2026년 6월 27일 금요일</span>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="content">
+
+    <!-- ════════════ DASHBOARD ════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-hd">
+        <div>
+          <div class="page-title">대시보드</div>
+          <div class="page-sub">2026년 회원 현황 및 회비 납부 요약입니다</div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card" onclick="nav('member-list', null, '회원 관리')">
+          <div class="stat-label">전체 회원</div>
+          <div class="stat-value">98</div>
+          <div class="stat-sub">활동 91 · 휴면 5 · 탈퇴 2</div>
+        </div>
+        <div class="stat-card green" onclick="nav('member-list', null, '회원 관리')">
+          <div class="stat-label">납부 완료</div>
+          <div class="stat-value">74</div>
+          <div class="stat-sub">납부율 81.3%</div>
+        </div>
+        <div class="stat-card amber" onclick="nav('member-list', null, '회원 관리')">
+          <div class="stat-label">미납</div>
+          <div class="stat-value">17</div>
+          <div class="stat-sub">활동 회원 기준</div>
+        </div>
+        <div class="stat-card slate">
+          <div class="stat-label">2026 기준 회비</div>
+          <div class="stat-value sm">3,000,000원</div>
+          <div class="stat-sub">전년 대비 동일</div>
+        </div>
+      </div>
+
+      <!-- ── 차트 영역 ── -->
+      <div class="chart-grid">
+        <!-- 회원 가입 현황 -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">기간별 회원 가입 현황</div>
+              <div class="chart-meta">신규 가입 기업 수</div>
+            </div>
+            <div class="chart-tabs">
+              <button class="chart-tab active" onclick="switchJoinChart('monthly', this)">월별</button>
+              <button class="chart-tab" onclick="switchJoinChart('yearly', this)">연도별</button>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chartJoin"></canvas>
+          </div>
+        </div>
+
+        <!-- 수금 추이 -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">연도별 수금 추이</div>
+              <div class="chart-meta">납부 금액 합계 (원)</div>
+            </div>
+            <div class="chart-tabs">
+              <button class="chart-tab active" onclick="switchRevenueChart('amount', this)">금액</button>
+              <button class="chart-tab" onclick="switchRevenueChart('rate', this)">납부율</button>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chartRevenue"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="table-wrap">
+          <div class="table-toolbar" style="padding:13px 16px;">
+            <span style="font-size:13px;font-weight:700;color:var(--text-1);">최근 납부 현황</span>
+          </div>
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>회사명</th>
+                <th>납부일</th>
+                <th>금액</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">(주)미래콘텐츠</td>
+                <td class="muted">2026-06-25</td>
+                <td>3,000,000원</td>
+                <td><span class="badge badge-paid">납부완료</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">크리에이티브랩</td>
+                <td class="muted">2026-06-20</td>
+                <td>3,000,000원</td>
+                <td><span class="badge badge-paid">납부완료</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">디지털미디어㈜</td>
+                <td class="muted">2026-06-18</td>
+                <td>3,000,000원</td>
+                <td><span class="badge badge-paid">납부완료</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">한국웹툰협동</td>
+                <td class="muted">2026-06-10</td>
+                <td>3,000,000원</td>
+                <td><span class="badge badge-paid">납부완료</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">넥스트스토리</td>
+                <td class="muted">2026-05-30</td>
+                <td>3,000,000원</td>
+                <td><span class="badge badge-paid">납부완료</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar" style="padding:13px 16px;">
+            <span style="font-size:13px;font-weight:700;color:var(--text-1);">미납 회원 현황</span>
+            <span class="ml-auto" style="font-size:11.5px;color:var(--red-text);font-weight:600;">17개 기업</span>
+          </div>
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>회사명</th>
+                <th>가입일</th>
+                <th>회원 상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">(주)스타트콘텐츠</td>
+                <td class="muted">2023-03-15</td>
+                <td><span class="badge badge-active">활동</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">인디크리에이터스</td>
+                <td class="muted">2024-01-08</td>
+                <td><span class="badge badge-active">활동</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">글로벌미디어㈜</td>
+                <td class="muted">2022-07-22</td>
+                <td><span class="badge badge-dormant">휴면</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">콘텐츠팩토리</td>
+                <td class="muted">2025-09-01</td>
+                <td><span class="badge badge-active">활동</span></td>
+              </tr>
+              <tr onclick="nav('member-detail', null, '회원 관리')">
+                <td class="table-company">뉴미디어웍스</td>
+                <td class="muted">2024-11-14</td>
+                <td><span class="badge badge-active">활동</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ MEMBER LIST ════════════ -->
+    <div class="page" id="page-member-list">
+      <div class="page-hd">
+        <div>
+          <div class="page-title">회원 목록</div>
+          <div class="page-sub">전체 98개 기업 회원 · 활동 91 · 휴면 5 · 탈퇴 2</div>
+        </div>
+        <button class="btn btn-primary" onclick="nav('member-add', null, '회원 관리')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          회원 추가
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="search-box">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="search-input" placeholder="회사명으로 검색…">
+          </div>
+          <select class="filter-select">
+            <option>가입 연도 전체</option>
+            <option>2026년</option><option>2025년</option>
+            <option>2024년</option><option>2023년</option>
+            <option>2022년</option><option>2021년</option>
+          </select>
+          <select class="filter-select">
+            <option>납부 상태 전체</option>
+            <option>납부 완료</option>
+            <option>미납</option>
+          </select>
+          <select class="filter-select">
+            <option>활동 회원만</option>
+            <option>전체 (탈퇴 포함)</option>
+            <option>탈퇴 회원만</option>
+          </select>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>회사명</th>
+              <th>대표자</th>
+              <th>담당자</th>
+              <th>담당자 연락처</th>
+              <th>가입일</th>
+              <th>회원 상태</th>
+              <th>2026 납부</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">(주)미래콘텐츠</td>
+              <td class="muted">김민준</td><td class="muted">이수진</td>
+              <td class="muted">010-1234-5678</td><td class="muted">2021-03-15</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-paid">납부완료</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">크리에이티브랩</td>
+              <td class="muted">박서연</td><td class="muted">최준혁</td>
+              <td class="muted">010-2345-6789</td><td class="muted">2022-07-01</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-paid">납부완료</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">디지털미디어㈜</td>
+              <td class="muted">이현우</td><td class="muted">강지민</td>
+              <td class="muted">010-3456-7890</td><td class="muted">2020-11-22</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-paid">납부완료</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">(주)스타트콘텐츠</td>
+              <td class="muted">정다은</td><td class="muted">윤재원</td>
+              <td class="muted">010-4567-8901</td><td class="muted">2023-03-15</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-unpaid">미납</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">한국웹툰협동</td>
+              <td class="muted">최영식</td><td class="muted">박민서</td>
+              <td class="muted">010-5678-9012</td><td class="muted">2019-05-10</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-paid">납부완료</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">글로벌미디어㈜</td>
+              <td class="muted">한승호</td><td class="muted">임채원</td>
+              <td class="muted">010-6789-0123</td><td class="muted">2022-07-22</td>
+              <td><span class="badge badge-dormant">휴면</span></td>
+              <td><span class="badge badge-unpaid">미납</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">인디크리에이터스</td>
+              <td class="muted">오지훈</td><td class="muted">김하은</td>
+              <td class="muted">010-7890-1234</td><td class="muted">2024-01-08</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-unpaid">미납</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">넥스트스토리</td>
+              <td class="muted">서진아</td><td class="muted">이도현</td>
+              <td class="muted">010-8901-2345</td><td class="muted">2021-08-30</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-paid">납부완료</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">콘텐츠팩토리</td>
+              <td class="muted">박지성</td><td class="muted">류민아</td>
+              <td class="muted">010-9012-3456</td><td class="muted">2025-09-01</td>
+              <td><span class="badge badge-active">활동</span></td>
+              <td><span class="badge badge-unpaid">미납</span></td>
+            </tr>
+            <tr onclick="nav('member-detail', null, '회원 관리')">
+              <td class="table-company">뉴미디어웍스</td>
+              <td class="muted">김태양</td><td class="muted">송혜진</td>
+              <td class="muted">010-0123-4567</td><td class="muted">2024-11-14</td>
+              <td><span class="badge badge-withdrawn">탈퇴</span></td>
+              <td><span class="badge badge-unpaid">미납</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <span>98개 중 1–10 표시</span>
+          <div class="page-btns">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">···</button>
+            <button class="page-btn">10</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ MEMBER DETAIL ════════════ -->
+    <div class="page" id="page-member-detail">
+      <div class="page-hd">
+        <div>
+          <div class="page-title">(주)미래콘텐츠</div>
+          <div class="page-sub">회원 상세 정보 · 등록일 2021-03-15</div>
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-ghost">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            수정
+          </button>
+          <button class="btn btn-danger">탈퇴 처리</button>
+        </div>
+      </div>
+
+      <div class="detail-layout">
+        <!-- Left: info -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card">
+            <div class="card-body">
+              <div class="card-title">기업 정보</div>
+              <div class="info-list">
+                <div class="info-row">
+                  <div class="info-key">회사명</div>
+                  <div class="info-val">(주)미래콘텐츠</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">대표자</div>
+                  <div class="info-val">김민준</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">담당자</div>
+                  <div class="info-val">이수진</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">담당자 연락처</div>
+                  <div class="info-val">010-1234-5678</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">담당자 이메일</div>
+                  <div class="info-val">sujin@miraecontents.co.kr</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">가입일</div>
+                  <div class="info-val">2021년 3월 15일</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">회원 상태</div>
+                  <div class="info-val"><span class="badge badge-active">활동</span></div>
+                </div>
+                <div class="info-row">
+                  <div class="info-key">메모</div>
+                  <div class="info-val" style="color:var(--text-2);">이사회 추천 회원. VIP 관리 필요.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: dues -->
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title">
+              연도별 회비 이력
+              <button class="btn btn-primary btn-sm">+ 납부 등록</button>
+            </div>
+            <div class="dues-row">
+              <div>
+                <div class="dues-year">2026년</div>
+                <div class="dues-meta">3,000,000원 · 납부일 2026-06-25</div>
+              </div>
+              <span class="badge badge-paid">납부완료</span>
+            </div>
+            <div class="dues-row">
+              <div>
+                <div class="dues-year">2025년</div>
+                <div class="dues-meta">3,000,000원 · 납부일 2025-04-10</div>
+              </div>
+              <span class="badge badge-paid">납부완료</span>
+            </div>
+            <div class="dues-row">
+              <div>
+                <div class="dues-year">2024년</div>
+                <div class="dues-meta">2,500,000원 · 납부일 2024-03-02</div>
+              </div>
+              <span class="badge badge-paid">납부완료</span>
+            </div>
+            <div class="dues-row">
+              <div>
+                <div class="dues-year">2023년</div>
+                <div class="dues-meta">2,500,000원 · 납부일 2023-02-14</div>
+              </div>
+              <span class="badge badge-paid">납부완료</span>
+            </div>
+            <div class="dues-row">
+              <div>
+                <div class="dues-year">2022년</div>
+                <div class="dues-meta">2,000,000원 · 납부일 2022-01-20</div>
+              </div>
+              <span class="badge badge-paid">납부완료</span>
+            </div>
+            <div class="dues-row">
+              <div>
+                <div class="dues-year">2021년</div>
+                <div class="dues-meta">2,000,000원 · 납부일 2021-04-05</div>
+              </div>
+              <span class="badge badge-paid">납부완료</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ MEMBER ADD ════════════ -->
+    <div class="page" id="page-member-add">
+      <div class="page-hd">
+        <div>
+          <div class="page-title">회원 추가</div>
+          <div class="page-sub">새로운 기업 회원을 등록합니다. <span style="color:var(--red);">*</span> 표시는 필수 항목입니다.</div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:700px;">
+        <div class="card-body">
+          <div class="card-title">기업 정보 입력</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="req">회사명</label>
+              <input type="text" placeholder="예: (주)미래콘텐츠">
+            </div>
+            <div class="form-group">
+              <label class="req">대표자 이름</label>
+              <input type="text" placeholder="예: 홍길동">
+            </div>
+            <div class="form-group">
+              <label>담당자 이름</label>
+              <input type="text" placeholder="예: 김철수">
+            </div>
+            <div class="form-group">
+              <label>담당자 연락처</label>
+              <input type="text" placeholder="예: 010-0000-0000">
+              <span class="hint">숫자와 하이픈만 입력 가능합니다</span>
+            </div>
+            <div class="form-group">
+              <label>담당자 이메일</label>
+              <input type="email" placeholder="예: contact@company.com">
+            </div>
+            <div class="form-group">
+              <label class="req">가입일</label>
+              <input type="date" value="2026-06-27">
+            </div>
+            <div class="form-group">
+              <label class="req">회원 상태</label>
+              <select class="form-select">
+                <option value="active">활동</option>
+                <option value="dormant">휴면</option>
+              </select>
+            </div>
+            <div class="form-group span2">
+              <label>메모 / 특이사항</label>
+              <textarea placeholder="추가로 기록할 내용을 입력하세요…"></textarea>
+            </div>
+          </div>
+
+          <hr class="divider">
+          <div class="flex-row" style="justify-content:flex-end;">
+            <button class="btn btn-ghost" onclick="nav('member-list', null, '회원 관리')">취소</button>
+            <button class="btn btn-primary">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SETTINGS: DUES ════════════ -->
+    <div class="page" id="page-settings-dues">
+      <div class="page-hd">
+        <div>
+          <div class="page-title">기준 회비 설정</div>
+          <div class="page-sub">연도별 기준 회비 금액을 등록하고 수정합니다</div>
+        </div>
+        <button class="btn btn-primary">+ 연도 추가</button>
+      </div>
+
+      <div class="notice">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        납부 등록 시 해당 연도의 기준 회비가 자동으로 불러와집니다. 납부 시점에 금액을 개별 수정할 수 있습니다.
+      </div>
+
+      <div class="card" style="max-width:520px;">
+        <div class="card-body">
+          <div class="card-title">연도별 기준 회비</div>
+          <div class="dues-setting-row">
+            <div class="dues-setting-year">2026년</div>
+            <input type="number" value="3000000"> <span style="font-size:13px;color:var(--text-2);">원</span>
+            <button class="btn btn-ghost btn-sm ml-auto">저장</button>
+          </div>
+          <div class="dues-setting-row">
+            <div class="dues-setting-year">2025년</div>
+            <input type="number" value="3000000"> <span style="font-size:13px;color:var(--text-2);">원</span>
+            <button class="btn btn-ghost btn-sm ml-auto">저장</button>
+          </div>
+          <div class="dues-setting-row">
+            <div class="dues-setting-year">2024년</div>
+            <input type="number" value="2500000"> <span style="font-size:13px;color:var(--text-2);">원</span>
+            <button class="btn btn-ghost btn-sm ml-auto">저장</button>
+          </div>
+          <div class="dues-setting-row">
+            <div class="dues-setting-year">2023년</div>
+            <input type="number" value="2500000"> <span style="font-size:13px;color:var(--text-2);">원</span>
+            <button class="btn btn-ghost btn-sm ml-auto">저장</button>
+          </div>
+          <div class="dues-setting-row">
+            <div class="dues-setting-year">2022년</div>
+            <input type="number" value="2000000"> <span style="font-size:13px;color:var(--text-2);">원</span>
+            <button class="btn btn-ghost btn-sm ml-auto">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════ SETTINGS: BACKUP ════════════ -->
+    <div class="page" id="page-settings-backup">
+      <div class="page-hd">
+        <div>
+          <div class="page-title">백업 / 복원</div>
+          <div class="page-sub">데이터 백업 파일을 조회하고 복원합니다</div>
+        </div>
+      </div>
+
+      <div class="notice">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        앱 실행 시 자동으로 백업되며 최근 5개를 보관합니다. 복원 시 현재 데이터는 선택한 백업으로 덮어쓰여집니다.
+      </div>
+
+      <div class="card" style="max-width:600px;">
+        <div class="card-body">
+          <div class="card-title">
+            백업 파일 목록
+            <span style="font-size:11.5px;font-weight:500;color:var(--text-3);">최근 5개 자동 보관</span>
+          </div>
+          <div class="backup-item">
+            <div>
+              <div class="backup-name">backup_2026-06-27_09-00-11.db</div>
+              <div class="backup-meta">2026년 6월 27일 오전 9:00 · 1.2 MB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">복원</button>
+          </div>
+          <div class="backup-item">
+            <div>
+              <div class="backup-name">backup_2026-06-26_09-01-03.db</div>
+              <div class="backup-meta">2026년 6월 26일 오전 9:01 · 1.2 MB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">복원</button>
+          </div>
+          <div class="backup-item">
+            <div>
+              <div class="backup-name">backup_2026-06-25_08-58-44.db</div>
+              <div class="backup-meta">2026년 6월 25일 오전 8:58 · 1.1 MB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">복원</button>
+          </div>
+          <div class="backup-item">
+            <div>
+              <div class="backup-name">backup_2026-06-24_09-03-22.db</div>
+              <div class="backup-meta">2026년 6월 24일 오전 9:03 · 1.1 MB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">복원</button>
+          </div>
+          <div class="backup-item">
+            <div>
+              <div class="backup-name">backup_2026-06-23_09-00-55.db</div>
+              <div class="backup-meta">2026년 6월 23일 오전 9:00 · 1.1 MB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">복원</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+  const pageLabels = {
+    'dashboard':       ['메인', '대시보드'],
+    'member-list':     ['회원 관리', '회원 목록'],
+    'member-detail':   ['회원 관리', '회원 상세'],
+    'member-add':      ['회원 관리', '회원 추가'],
+    'settings-dues':   ['설정', '기준 회비 설정'],
+    'settings-backup': ['설정', '백업 / 복원'],
+  };
+
+  function nav(id, navEl, section) {
+    // hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+
+    // topbar breadcrumb
+    const [sec, title] = pageLabels[id] || [section || '', id];
+    document.getElementById('tb-section').textContent = sec;
+    document.getElementById('tb-title').textContent = title;
+
+    // sidebar active
+    if (navEl) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      navEl.classList.add('active');
+    } else {
+      // auto-highlight matching nav item
+      document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.textContent.trim() === title) {
+          document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+          n.classList.add('active');
+        }
+      });
+    }
+
+    // scroll to top
+    document.querySelector('.content').scrollTop = 0;
+  }
+
+  /* ════════════════════════════
+     CHART SETUP
+  ════════════════════════════ */
+  const ACCENT    = '#3B82F6';
+  const ACCENT2   = 'rgba(59,130,246,0.12)';
+  const GREEN     = '#10B981';
+  const GREEN2    = 'rgba(16,185,129,0.12)';
+  const AMBER     = '#F59E0B';
+  const TEXT2     = '#94A3B8';
+  const BORDER_C  = '#E2E8F0';
+
+  Chart.defaults.font.family = "-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+  Chart.defaults.font.size   = 11;
+  Chart.defaults.color       = TEXT2;
+
+  const gridOpts = {
+    color: BORDER_C,
+    drawBorder: false,
+  };
+
+  const tooltipOpts = {
+    backgroundColor: '#0F172A',
+    titleColor: '#F1F5F9',
+    bodyColor: '#94A3B8',
+    padding: 10,
+    cornerRadius: 6,
+    displayColors: true,
+    boxWidth: 8,
+    boxHeight: 8,
+  };
+
+  /* ── 회원 가입 현황 데이터 ── */
+  const joinMonthly = {
+    labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+    datasets: [{
+      label: '신규 가입',
+      data: [3, 5, 8, 4, 6, 7, 2, 9, 5, 4, 6, 3],
+      backgroundColor: ACCENT,
+      borderRadius: 5,
+      borderSkipped: false,
+      hoverBackgroundColor: '#2563EB',
+    }]
+  };
+
+  const joinYearly = {
+    labels: ['2020','2021','2022','2023','2024','2025','2026'],
+    datasets: [{
+      label: '신규 가입',
+      data: [8, 14, 17, 19, 21, 15, 4],
+      backgroundColor: [
+        'rgba(59,130,246,0.45)',
+        'rgba(59,130,246,0.50)',
+        'rgba(59,130,246,0.60)',
+        'rgba(59,130,246,0.70)',
+        'rgba(59,130,246,0.80)',
+        'rgba(59,130,246,0.90)',
+        '#3B82F6',
+      ],
+      borderRadius: 5,
+      borderSkipped: false,
+      hoverBackgroundColor: '#2563EB',
+    }]
+  };
+
+  /* ── 수금 추이 데이터 ── */
+  const revenueAmount = {
+    labels: ['2020','2021','2022','2023','2024','2025','2026'],
+    datasets: [{
+      label: '수금액 (만원)',
+      data: [8000, 12600, 15400, 18200, 22500, 27000, 22200],
+      borderColor: GREEN,
+      backgroundColor: GREEN2,
+      pointBackgroundColor: GREEN,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      fill: true,
+      tension: 0.4,
+    }]
+  };
+
+  const revenueRate = {
+    labels: ['2020','2021','2022','2023','2024','2025','2026'],
+    datasets: [{
+      label: '납부율 (%)',
+      data: [72, 78, 80, 83, 87, 90, 81],
+      borderColor: AMBER,
+      backgroundColor: 'rgba(245,158,11,0.1)',
+      pointBackgroundColor: AMBER,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      fill: true,
+      tension: 0.4,
+    }]
+  };
+
+  /* ── 차트 인스턴스 생성 ── */
+  let joinChart, revenueChart;
+
+  function makeBarChart(ctx, data) {
+    return new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 700,
+          easing: 'easeOutQuart',
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: tooltipOpts,
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { color: TEXT2 } },
+          y: { grid: gridOpts, border: { display: false }, ticks: { color: TEXT2, maxTicksLimit: 5 }, beginAtZero: true },
+        },
+      }
+    });
+  }
+
+  function makeLineChart(ctx, data) {
+    return new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 800,
+          easing: 'easeOutCubic',
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: tooltipOpts,
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { color: TEXT2 } },
+          y: { grid: gridOpts, border: { display: false }, ticks: { color: TEXT2, maxTicksLimit: 5 }, beginAtZero: false },
+        },
+      }
+    });
+  }
+
+  /* ── 탭 전환 ── */
+  function switchJoinChart(mode, btn) {
+    btn.closest('.chart-tabs').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const data = mode === 'monthly' ? joinMonthly : joinYearly;
+    joinChart.data = data;
+    joinChart.update({ duration: 500, easing: 'easeInOutQuart' });
+  }
+
+  function switchRevenueChart(mode, btn) {
+    btn.closest('.chart-tabs').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const data = mode === 'amount' ? revenueAmount : revenueRate;
+    revenueChart.data = data;
+    revenueChart.update({ duration: 500, easing: 'easeInOutQuart' });
+  }
+
+  /* ── 초기화 ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    joinChart    = makeBarChart(document.getElementById('chartJoin'), joinMonthly);
+    revenueChart = makeLineChart(document.getElementById('chartRevenue'), revenueAmount);
+  });
+</script>
+
+</body>
+</html>

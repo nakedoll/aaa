@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" />
+  <title>한국콘텐츠기업협회 회원관리</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<div id="sidebar">
+  <div class="logo">한국콘텐츠기업협회<br>회원관리 시스템</div>
+  <nav>
+    <a data-page="dashboard" href="#">
+      <span class="icon">◈</span> 대시보드
+    </a>
+    <a data-page="members" href="#">
+      <span class="icon">☰</span> 회원 목록
+    </a>
+    <a data-page="settings" href="#">
+      <span class="icon">⚙</span> 설정
+    </a>
+  </nav>
+</div>
+
+<!-- ── Main ── -->
+<div id="app">
+  <div id="topbar">대시보드</div>
+  <div id="content">
+
+    <!-- Page: Dashboard -->
+    <div id="page-dashboard" class="page active">
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="label">전체 회원</div>
+          <div class="value" id="stat-total">-</div>
+          <div class="sub"  id="stat-total-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">납부 완료</div>
+          <div class="value" id="stat-paid">-</div>
+          <div class="sub"  id="stat-paid-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">미납</div>
+          <div class="value" id="stat-unpaid">-</div>
+          <div class="sub"  id="stat-unpaid-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">기준 회비 (올해)</div>
+          <div class="value" id="stat-base">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page: Member List -->
+    <div id="page-members" class="page">
+      <div class="page-header">
+        <h2>회원 목록</h2>
+        <button class="btn btn-primary" id="btn-add-member">+ 회원 추가</button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="filter-search" placeholder="회사명 검색…" />
+        <select id="filter-year"><option value="">전체 연도</option></select>
+        <select id="filter-dues">
+          <option value="all">납부 상태 전체</option>
+          <option value="paid">납부</option>
+          <option value="unpaid">미납</option>
+          <option value="not_configured">미설정</option>
+        </select>
+        <select id="filter-member">
+          <option value="current">현재 회원만</option>
+          <option value="all">전체</option>
+          <option value="withdrawn">탈퇴 회원만</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>회사명</th><th>대표자</th><th>담당자</th><th>연락처</th>
+              <th>가입일</th><th>상태</th><th>올해 납부</th>
+            </tr>
+          </thead>
+          <tbody id="members-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Page: Member Detail -->
+    <div id="page-member-detail" class="page">
+      <div class="detail-wrap">
+        <div class="detail-header">
+          <button class="back-btn" id="btn-detail-back">← 목록으로</button>
+          <div class="actions">
+            <button class="btn btn-secondary" id="btn-detail-edit">수정</button>
+            <button class="btn btn-secondary" id="btn-detail-add-dues">납부 등록</button>
+            <button class="btn btn-danger"    id="btn-detail-withdraw">탈퇴 처리</button>
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>기업 정보</h3>
+          <div class="detail-grid">
+            <div class="detail-field"><label>회사명</label><p id="detail-company"></p></div>
+            <div class="detail-field"><label>대표자</label><p id="detail-ceo"></p></div>
+            <div class="detail-field"><label>담당자</label><p id="detail-contact-name"></p></div>
+            <div class="detail-field"><label>연락처</label><p id="detail-contact-phone"></p></div>
+            <div class="detail-field"><label>이메일</label><p id="detail-contact-email"></p></div>
+            <div class="detail-field"><label>가입일</label><p id="detail-joined"></p></div>
+            <div class="detail-field"><label>회원 상태</label><p id="detail-status"></p></div>
+          </div>
+          <div class="form-group" style="margin-top:12px">
+            <label style="font-size:12px;color:var(--color-gray-500)">메모</label>
+            <p id="detail-memo" style="margin-top:4px;white-space:pre-wrap;font-size:13px;color:var(--color-gray-700)"></p>
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>회비 납부 이력</h3>
+          <div class="table-wrap" style="border:none;box-shadow:none;">
+            <table>
+              <thead>
+                <tr><th>연도</th><th>금액</th><th>납부일</th><th></th></tr>
+              </thead>
+              <tbody id="dues-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page: Member Form (Add / Edit) -->
+    <div id="page-member-form" class="page">
+      <div class="page-header">
+        <h2 id="form-title">회원 추가</h2>
+      </div>
+      <div class="form-section">
+        <form id="member-form" onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label>회사명<span class="required">*</span></label>
+              <input type="text" id="field-company" maxlength="100" placeholder="(주)예시기업" />
+              <div class="error-msg"></div>
+            </div>
+            <div class="form-group">
+              <label>대표자 이름<span class="required">*</span></label>
+              <input type="text" id="field-ceo" placeholder="홍길동" />
+              <div class="error-msg"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>담당자 이름</label>
+              <input type="text" id="field-contact-name" placeholder="" />
+              <div class="error-msg"></div>
+            </div>
+            <div class="form-group">
+              <label>담당자 연락처</label>
+              <input type="text" id="field-contact-phone" placeholder="02-1234-5678" />
+              <div class="error-msg"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>담당자 이메일</label>
+            <input type="email" id="field-contact-email" placeholder="example@email.com" />
+            <div class="error-msg"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>가입일<span class="required">*</span></label>
+              <input type="date" id="field-joined-at" />
+              <div class="error-msg"></div>
+            </div>
+            <div class="form-group">
+              <label>회원 상태<span class="required">*</span></label>
+              <select id="field-status">
+                <option value="active">활동</option>
+                <option value="dormant">휴면</option>
+              </select>
+              <div class="error-msg"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>메모</label>
+            <textarea id="field-memo" placeholder="참고 사항을 입력하세요"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary"   id="btn-form-save">저장</button>
+            <button type="button" class="btn btn-secondary" id="btn-form-cancel">취소</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Page: Settings -->
+    <div id="page-settings" class="page">
+      <div class="settings-section">
+        <h3>연도별 기준 회비</h3>
+        <div id="dues-settings-list"></div>
+        <div class="settings-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-gray-200)">
+          <label style="width:auto;margin-right:8px;">새 연도</label>
+          <input type="number" id="new-dues-year"   placeholder="예: 2026" style="width:110px;" min="2000" max="2100" />
+          <input type="number" id="new-dues-amount" placeholder="금액(원)"  style="width:130px;" min="1" />
+          <button class="btn btn-primary" id="btn-add-dues-year">추가</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>백업 정보</h3>
+        <p style="font-size:13px;color:var(--color-gray-500);line-height:1.7;">
+          앱 실행 시 자동으로 백업됩니다 (최근 5개 보관).<br>
+          백업 위치: <code>userData/backups/backup_YYYY-MM-DD_HH-MM-SS.db</code><br><br>
+          <strong>긴급 복원 방법</strong><br>
+          1. 앱 완전 종료<br>
+          2. db/ 폴더의 members.db → members.db.bak으로 이름 변경 (-wal, -shm도 동일)<br>
+          3. backups/ 폴더의 원하는 파일을 db/members.db로 복사<br>
+          4. 앱 재실행 후 정상 동작 확인 후 .bak 파일 삭제
+        </p>
+      </div>
+    </div>
+
+  </div><!-- #content -->
+</div><!-- #app -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
