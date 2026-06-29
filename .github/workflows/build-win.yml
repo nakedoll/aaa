@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: 코드 체크아웃
@@ -17,14 +17,20 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 의존성 설치 (네이티브 모듈 재빌드 포함)
-        run: npm ci
+      - name: MSVC 개발 환경 설정
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: 의존성 설치 (postinstall 제외)
+        run: npm ci --ignore-scripts
+
+      - name: better-sqlite3 Electron용 재빌드
+        run: npx @electron/rebuild -f -w better-sqlite3
 
       - name: Electron 앱 빌드
         run: npm run build
 
       - name: Windows EXE 패키징
-        run: npx electron-builder --win --x64
+        run: npx electron-builder --win --x64 --config '{"npmRebuild":false}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
