@@ -35,7 +35,7 @@ jobs:
         run: npm run build
 
       - name: Windows EXE 패키징
-        run: npx electron-builder --win --x64 --config '{"npmRebuild":false}'
+        run: npx electron-builder --win --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
